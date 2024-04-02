@@ -45,14 +45,75 @@ from autosklearn.evaluation.train_evaluator import TYPE_ADDITIONAL_INFO
 from autosklearn.metrics import Scorer
 from autosklearn.util.logging_ import PickableLoggerAdapter, get_named_client_logger
 from autosklearn.util.parallel import preload_modules
+import os
+from pypapi import papi_low as papi
+from pypapi import events
 
 
 def fit_predict_try_except_decorator(
-    ta: Callable, queue: multiprocessing.Queue, cost_for_crash: float, **kwargs: Any
+    ta: Callable,
+    # iterations: int,
+    benchmarkdir: Optional[str],
+    num_run: int,
+    queue_start_time: int,
+    queue: multiprocessing.Queue,
+    config: Union[int, Configuration],
+    cost_for_crash: float,
+    **kwargs: Any,
 ) -> None:
-
+    
+    temp_num = num_run
     try:
-        return ta(queue=queue, **kwargs)
+        #return ta(queue=queue,config=config,num_run=num_run, **kwargs)
+        if benchmarkdir is not None:
+            papi.library_init()
+            evs = papi.create_eventset()
+            papi.add_event(evs, events.PAPI_FP_OPS)
+            papi.add_event(evs, events.PAPI_TOT_CYC)
+            papi.add_event(evs, events.PAPI_FP_INS)
+            papi.start(evs)
+            run_time = time.time_ns()
+            # for i in range(iterations - 1):
+            #     ta(queue=queue, config=config, num_run=num_run, **kwargs)
+            # return ta(queue=queue,config=config,num_run=num_run, **kwargs)
+            result = ta(queue=queue, config=config, num_run=num_run, **kwargs)
+            pmc = papi.stop(evs)
+            end_time = time.time_ns()
+            with open(
+                f"{benchmarkdir}/{queue_start_time}_{temp_num}", "wb"
+            ) as f:  #os.environ('RUNSTART')
+                elapsed_run_time = end_time - run_time
+                if isinstance(config,Configuration):
+                    np.save(
+                        f,
+                        np.array(
+                            [
+                                run_time,
+                                elapsed_run_time,
+                                config.get_dictionary(),
+                                pmc[0],
+                                pmc[1],
+                                pmc[2],
+                            ]
+                        ),
+                    )
+                else:
+                    np.save(
+                        f,
+                        np.array(
+                            [
+                                run_time,
+                                elapsed_run_time,
+                                config,
+                                pmc[0],
+                                pmc[1],
+                                pmc[2],
+                            ]
+                        ),
+                    )
+            return result
+        else:
+            return ta(queue=queue, config=config, num_run=num_run, **kwargs)
     except Exception as e:
         if isinstance(e, (MemoryError, pynisher.TimeoutException)):
             # Re-raise the memory error to let the pynisher handle that correctly
@@ -82,7 +143,40 @@ def fit_predict_try_except_decorator(
             "Exception handling in `fit_predict_try_except_decorator`: "
             "traceback: %s \nerror message: %s" % (exception_traceback, error_message)
         )
-
+        # if benchmarkdir is not None:
+        #     pmc = papi.stop(evs)
+        #     end_time = time.time_ns()
+        #     with open(
+        #             f"{benchmarkdir}/{queue_start_time}_{temp_num}", "wb"
+        #         ) as f:  # {self.stats.submitted_ta_runs}os.environ('RUNSTART')
+        #         if isinstance(config,Configuration):
+        #             np.save(
+        #                 f,
+        #                 np.array(
+        #                     [
+        #                         run_time,
+        #                         elapsed_run_time,
+        #                         config.get_dictionary(),
+        #                         pmc[0],
+        #                         pmc[1],
+        #                         pmc[2],
+        #                     ]
+        #                 ),
+        #             )
+        #         else:
+        #             np.save(
+        #                 f,
+        #                 np.array(
+        #                     [
+        #                         run_time,
+        #                         elapsed_run_time,
+        #                         config,
+        #                         pmc[0],
+        #                         pmc[1],
+        #                         pmc[2],
+        #                     ]
+        #                 ),
+        #             )
         queue.put(
             {
                 "loss": cost_for_crash,
@@ -125,7 +219,7 @@ def get_cost_of_crash(metrics: Sequence[Scorer]) -> List[float] | float:
 
 
 def _encode_exit_status(
-    exit_status: Union[str, int, Type[BaseException]]
+    exit_status: Union[str, int, Type[BaseException]],
 ) -> Union[str, int]:
     try:
         # If it can be dumped, then it is int
@@ -192,12 +286,39 @@ class ExecuteTaFuncWithQueue(AbstractTAFunc):
             raise ValueError("Unknown resampling strategy %s" % resampling_strategy)
 
         self.worst_possible_result = cost_for_crash
+        # here partial function that executes evaluator 10 times
 
+        if "BENCHMARKDIR" in os.environ:
+            benchmarkdir = os.environ["BENCHMARKDIR"]
+        else:
+            benchmarkdir = None
+        self.start_time = time.time_ns()
         eval_function = functools.partial(
-            fit_predict_try_except_decorator,
-            ta=eval_function,
-            cost_for_crash=self.worst_possible_result,
-        )
+                fit_predict_try_except_decorator,
+                queue_start_time=self.start_time,
+                benchmarkdir=benchmarkdir,
+                ta=eval_function,
+                cost_for_crash=self.worst_possible_result,
+            )
+        # if "ITERATIONS" in os.environ:
+        #     iterations = int(os.environ["ITERATIONS"])
+        #     eval_function = functools.partial(
+        #         fit_predict_try_except_decorator,
+        #         iterations=iterations,
+        #         benchmarkdir=benchmarkdir,
+        #         queue_start_time=self.start_time,
+        #         ta=eval_function,
+        #         cost_for_crash=self.worst_possible_result,
+        #     )
+        # else:
+        #     eval_function = functools.partial(
+        #         fit_predict_try_except_decorator,
+        #         iterations=1,
+        #         queue_start_time=self.start_time,
+        #         benchmarkdir=benchmarkdir,
+        #         ta=eval_function,
+        #         cost_for_crash=self.worst_possible_result,
+        #     )
 
         super().__init__(
             ta=eval_function,
@@ -224,6 +345,7 @@ class ExecuteTaFuncWithQueue(AbstractTAFunc):
         self.disable_file_output = disable_file_output
         self.init_params = init_params
         self.budget_type = budget_type
+        
 
         if memory_limit is not None:
             memory_limit = int(math.ceil(memory_limit))
@@ -330,7 +452,6 @@ class ExecuteTaFuncWithQueue(AbstractTAFunc):
         float,
         Dict[str, Union[int, float, str, Dict, List, Tuple]],
     ]:
-
         # Additional information of each of the tae executions
         # Defined upfront for mypy
         additional_run_info: TYPE_ADDITIONAL_INFO = {}
@@ -366,8 +487,17 @@ class ExecuteTaFuncWithQueue(AbstractTAFunc):
         if isinstance(config, int):
             num_run = self.initial_num_run
         else:
+            #print(f"config in queue is {config.config_id}")
+            #print(f"initial num run is {self.initial_num_run}")
             num_run = config.config_id + self.initial_num_run
 
+
+        if "ITERATIONS" in os.environ:
+            iterations = int(os.environ["ITERATIONS"])
+        else:
+            iterations = None
+        # print(config)
+        # print(f"config is {config}")
         obj_kwargs = dict(
             queue=queue,
             config=config,
@@ -386,12 +516,13 @@ class ExecuteTaFuncWithQueue(AbstractTAFunc):
             budget=budget,
             budget_type=self.budget_type,
             additional_components=autosklearn.pipeline.components.base._addons,
+            iterations=iterations,
         )
 
         if self.resampling_strategy != "test":
             obj_kwargs["resampling_strategy"] = self.resampling_strategy
             obj_kwargs["resampling_strategy_args"] = self.resampling_strategy_args
-
+        # print(f"object kwargs is{obj_kwargs}")
         try:
             obj = pynisher.enforce_limits(**arguments)(self.ta)
             obj(**obj_kwargs)

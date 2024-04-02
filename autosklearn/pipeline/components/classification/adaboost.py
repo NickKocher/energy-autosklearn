@@ -85,9 +85,10 @@ class AdaboostClassifier(AutoSklearnClassificationAlgorithm):
         algorithm = CategoricalHyperparameter(
             name="algorithm", choices=["SAMME.R", "SAMME"], default_value="SAMME.R"
         )
-        max_depth = UniformIntegerHyperparameter(
-            name="max_depth", lower=1, upper=10, default_value=1, log=False
-        )
+        #max_depth = UniformIntegerHyperparameter(
+            #name="max_depth", lower=1, upper=10, default_value=1, log=False
+        #)
 
-        cs.add_hyperparameters([n_estimators, learning_rate, algorithm, max_depth])
+        #cs.add_hyperparameters([n_estimators, learning_rate, algorithm, max_depth])
+        cs.add_hyperparameters([n_estimators, learning_rate, algorithm])
         return cs

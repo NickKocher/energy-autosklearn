@@ -3,7 +3,17 @@ doc/build/*
 doc/examples
 
 *.py[cod]
-
+#data
+*.csv
+metadata-retraining/run*/
+energy-measurements/test*/
+energy-measurements/run*/
+energy-measurements/autosklearn_classification*/
+metadata-retraining/autosklearn*/
+*.out
+metadata_commands.txt
+configuration/
+test_run.csv
 # Exmaples
 # examples 40_advanced generate a tmp_folder
 examples/40_advanced/tmp_folder
@@ -11,6 +21,7 @@ examples/40_advanced/tmp_folder
 # C extensions
 *.c
 *.so
+
 
 # Packages
 *.egg

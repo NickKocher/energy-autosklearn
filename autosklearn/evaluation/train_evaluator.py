@@ -249,13 +249,14 @@ class TrainEvaluator(AbstractEvaluator):
         self.partial = True
         self.keep_models = keep_models
 
-    def fit_predict_and_loss(self, iterative: bool = False) -> None:
+    def fit_predict_and_loss(self, iterative: bool = False,fit_iterations: int = None) -> None:
         """Fit, predict and compute the loss for cross-validation and
         holdout (both iterative and non-iterative)
         """
         # Define beforehand for mypy
         additional_run_info: Optional[TYPE_ADDITIONAL_INFO] = None
-
+        if fit_iterations == None:
+            fit_iterations = 1
         if iterative:
             if self.num_cv_folds == 1:
 
@@ -521,56 +522,56 @@ class TrainEvaluator(AbstractEvaluator):
                     self.X_train, y, groups=self.resampling_strategy_args.get("groups")
                 )
             ):
+                for j in range(fit_iterations):
+                    # TODO add check that split is actually an integer array,
+                    # not a boolean array (to allow indexed assignement of
+                    # training data later).
 
-                # TODO add check that split is actually an integer array,
-                # not a boolean array (to allow indexed assignement of
-                # training data later).
+                    if self.budget_type is None:
+                        (
+                            train_pred,
+                            opt_pred,
+                            test_pred,
+                            additional_run_info,
+                        ) = self._partial_fit_and_predict_standard(
+                            i,
+                            train_indices=train_split,
+                            test_indices=test_split,
+                            add_model_to_self=self.num_cv_folds == 1,
+                        )
+                    else:
+                        (
+                            train_pred,
+                            opt_pred,
+                            test_pred,
+                            additional_run_info,
+                        ) = self._partial_fit_and_predict_budget(
+                            i,
+                            train_indices=train_split,
+                            test_indices=test_split,
+                            add_model_to_self=self.num_cv_folds == 1,
+                        )
 
-                if self.budget_type is None:
-                    (
-                        train_pred,
-                        opt_pred,
-                        test_pred,
-                        additional_run_info,
-                    ) = self._partial_fit_and_predict_standard(
-                        i,
-                        train_indices=train_split,
-                        test_indices=test_split,
-                        add_model_to_self=self.num_cv_folds == 1,
-                    )
-                else:
-                    (
-                        train_pred,
-                        opt_pred,
-                        test_pred,
-                        additional_run_info,
-                    ) = self._partial_fit_and_predict_budget(
-                        i,
-                        train_indices=train_split,
-                        test_indices=test_split,
-                        add_model_to_self=self.num_cv_folds == 1,
-                    )
+                    if (
+                        additional_run_info is not None
+                        and len(additional_run_info) > 0
+                        and i > 0
+                    ):
+                        raise TAEAbortException(
+                            'Found additional run info "%s" in fold %d, '
+                            "but cannot handle additional run info if fold >= 1."
+                            % (additional_run_info, i)
+                        )
 
-                if (
-                    additional_run_info is not None
-                    and len(additional_run_info) > 0
-                    and i > 0
-                ):
-                    raise TAEAbortException(
-                        'Found additional run info "%s" in fold %d, '
-                        "but cannot handle additional run info if fold >= 1."
-                        % (additional_run_info, i)
-                    )
+                    Y_train_pred[i] = train_pred
+                    Y_optimization_pred[i] = opt_pred
+                    Y_test_pred[i] = test_pred
+                    train_splits[i] = train_split
 
-                Y_train_pred[i] = train_pred
-                Y_optimization_pred[i] = opt_pred
-                Y_test_pred[i] = test_pred
-                train_splits[i] = train_split
+                    X = select(self.X_train, train_split)
+                    y = select(self.Y_train_targets, train_split)
 
-                X = select(self.X_train, train_split)
-                y = select(self.Y_train_targets, train_split)
-
-                train_loss = self._loss(y, train_pred, X_data=X)
+                    train_loss = self._loss(y, train_pred, X_data=X)
                 train_losses.append(train_loss)
                 # number of training data points for this fold. Used for weighting
                 # the average.
@@ -1187,6 +1188,7 @@ def eval_holdout(
     budget: Optional[float] = 100.0,
     budget_type: Optional[str] = None,
     iterative: bool = False,
+    iterations: Optional[int] = None,
 ) -> None:
     evaluator = TrainEvaluator(
         backend=backend,
@@ -1208,7 +1210,7 @@ def eval_holdout(
         budget=budget,
         budget_type=budget_type,
     )
-    evaluator.fit_predict_and_loss(iterative=iterative)
+    evaluator.fit_predict_and_loss(iterative=iterative,fit_iterations=iterations)
 
 
 def eval_iterative_holdout(

@@ -7,6 +7,7 @@ if __name__ == "__main__":
     import subprocess
     import sys
     import tempfile
+    import time
 
     from autosklearn.classification import AutoSklearnClassifier
     from autosklearn.regression import AutoSklearnRegressor
@@ -61,6 +62,7 @@ if __name__ == "__main__":
 
     tempdir = tempfile.mkdtemp()
     autosklearn_directory = os.path.join(tempdir, "dir")
+    autosklearn_directory = f"/home/kocher/energy-autosklearn/metadata-retraining/autosklearn_tmp_{time.clock_gettime(time.CLOCK_MONOTONIC)}"
 
     automl_arguments = {
         "time_left_for_this_task": time_limit,
@@ -69,11 +71,11 @@ if __name__ == "__main__":
         "ensemble_class": None,
         "ensemble_nbest": 0,
         "seed": seed,
-        "memory_limit": 3072,
-        "resampling_strategy": "partial-cv",
+        "memory_limit": 15000,
+        "resampling_strategy": "holdout",
         "delete_tmp_folder_after_terminate": False,
         "tmp_folder": autosklearn_directory,
-        "disable_evaluator_output": True,
+        "disable_evaluator_output": False, #changed from True
     }
 
     if is_test:

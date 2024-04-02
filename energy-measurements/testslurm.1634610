@@ -1,0 +1,44 @@
+
+The following have been reloaded with a version change:
+  1) GCCcore/11.2.0 => GCCcore/13.2.0
+  2) zlib/1.2.11-GCCcore-11.2.0 => zlib/1.2.13-GCCcore-13.2.0
+
+
+The following have been reloaded with a version change:
+  1) XZ/5.2.5-GCCcore-11.2.0 => XZ/5.4.4-GCCcore-13.2.0
+  2) binutils/2.37-GCCcore-11.2.0 => binutils/2.40-GCCcore-13.2.0
+
+/home/kocher/energy-autosklearn/energy-measurements/basic_dataset_test.py:13: FutureWarning: Starting from Version 0.15 `download_data`, `download_qualities`, and `download_features_meta_data` will all be ``False`` instead of ``True`` by default to enable lazy loading. To disable this message until version 0.15 explicitly set `download_data`, `download_qualities`, and `download_features_meta_data` to a bool while calling `get_dataset`.
+  dataset = openml.datasets.get_dataset(61)
+     sepallength  sepalwidth  petallength  petalwidth
+0            5.1         3.5          1.4         0.2
+1            4.9         3.0          1.4         0.2
+2            4.7         3.2          1.3         0.2
+3            4.6         3.1          1.5         0.2
+4            5.0         3.6          1.4         0.2
+..           ...         ...          ...         ...
+145          6.7         3.0          5.2         2.3
+146          6.3         2.5          5.0         1.9
+147          6.5         3.0          5.2         2.0
+148          6.2         3.4          5.4         2.3
+149          5.9         3.0          5.1         1.8
+
+[150 rows x 4 columns]
+0         Iris-setosa
+1         Iris-setosa
+2         Iris-setosa
+3         Iris-setosa
+4         Iris-setosa
+            ...      
+145    Iris-virginica
+146    Iris-virginica
+147    Iris-virginica
+148    Iris-virginica
+149    Iris-virginica
+Name: class, Length: 150, dtype: category
+Categories (3, object): ['Iris-setosa' < 'Iris-versicolor' < 'Iris-virginica']
+/home/kocher/energy-autosklearn/autosklearn/data/target_validator.py:187: UserWarning: Fitting transformer with a pandas series which has the dtype category. Inverse transform may not be able preserve dtype when converting to np.ndarray
+  warnings.warn(
+Fitting to the training data:   0%|[32m          [0m| 0/120 [00:00<?, ?it/s, The total time budget for this task is 0:02:00]Fitting to the training data:   1%|[32m          [0m| 1/120 [00:01<01:59,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   2%|[32m▏         [0m| 2/120 [00:02<01:58,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   2%|[32m▎         [0m| 3/120 [00:03<01:57,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   3%|[32m▎         [0m| 4/120 [00:04<01:56,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   4%|[32m▍         [0m| 5/120 [00:05<01:55,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   5%|[32m▌         [0m| 6/120 [00:06<01:54,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   6%|[32m▌         [0m| 7/120 [00:07<01:53,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   7%|[32m▋         [0m| 8/120 [00:08<01:52,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   8%|[32m▊         [0m| 9/120 [00:09<01:51,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   8%|[32m▊         [0m| 10/120 [00:10<01:50,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:   9%|[32m▉         [0m| 11/120 [00:11<01:49,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  10%|[32m█         [0m| 12/120 [00:12<01:48,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  11%|[32m█         [0m| 13/120 [00:13<01:47,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  12%|[32m█▏        [0m| 14/120 [00:14<01:46,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  12%|[32m█▎        [0m| 15/120 [00:15<01:45,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  13%|[32m█▎        [0m| 16/120 [00:16<01:44,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  14%|[32m█▍        [0m| 17/120 [00:17<01:43,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  15%|[32m█▌        [0m| 18/120 [00:18<01:42,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  16%|[32m█▌        [0m| 19/120 [00:19<01:41,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  17%|[32m█▋        [0m| 20/120 [00:20<01:40,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  18%|[32m█▊        [0m| 21/120 [00:21<01:39,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  18%|[32m�srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+��▊        [0m| 22/120 [00:22<01:38,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  19%|[32m█▉        [0m| 23/120 [00:23<01:37,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  20%|[32m██        [0m| 24/120 [00:24<01:36,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  21%|[32m██        [0m| 25/120 [00:25<01:35,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  22%|[32m██▏       [0m| 26/120 [00:26<01:34,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  22%|[32m██▎       [0m| 27/120 [00:27<01:33,  1.00s/it, The total time budget for this task is 0:02:00]Fitting to the training data:  23%|[32m██▎       [0m| 28/120 [00:28<01:32,  1.00s/it, The total time budget for this task is 0:02:00]slurmstepd-kathleenlogin02: error: *** STEP 1634610.0 ON kathleenlogin02 CANCELLED AT 2024-03-24T21:27:41 ***
+slurmstepd-kathleenlogin02: error: *** JOB 1634610 ON kathleenlogin02 CANCELLED AT 2024-03-24T21:27:41 ***
